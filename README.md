@@ -14,7 +14,9 @@ weather.sh is a small bash script that outputs weather data for a city directly 
 
 ##Valid usage examples
 
- Basic syntax : **weather** ```city\_name``` \(```state/province```\) ```country\_code```
+ Basic syntax : **weather** ```city_name``` \(```state/province```\) ```country_code```
+
+ For names containing spaces, enclose in double quotes ("")
 
   * ````weather montreal qc ca````
   * ````weather amsterdam nl````
