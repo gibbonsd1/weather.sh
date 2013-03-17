@@ -99,10 +99,10 @@ then
     country=$(echo $line_result | awk '{print $1}')
 
     #not valid state.
-    if [ "$state" -eq "$state" ] 2>/dev/null; then
+    if echo "${state}" | grep '[0-9]' >/dev/null; then
       state=""
     else
-      state=$state
+      state="$state,"
     fi
 
     place="$city $state $country"
@@ -149,7 +149,7 @@ then
         city=$( echo "$city," | cut -c 2-)
 
         #not valid state.
-        if [ "$state" -eq "$state" ] 2>/dev/null; then
+        if echo "${state}" | grep '[0-9]' >/dev/null; then
           state=""
         else
           state="$state,"
