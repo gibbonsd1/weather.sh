@@ -36,7 +36,46 @@ fi
 array=($A)
 nbresults=${#array[@]}
 
-showresult(){
+#format url-friendly place
+function parse_from_multiple(){
+    if [ "$1" == "None, make a new search" ]
+    then
+        exit;
+    fi
+    url_ready_place=$(echo $1 | sed s/\'//g | sed 's/ /+/g')
+    showresult
+}  
+
+#make sure state contains no numbers
+function check_state_validity(){
+    if echo "$1" | grep '[0-9]' >/dev/null; then
+        #not valid state.
+        state=""
+    else
+        #valid state
+        state="$state,"
+    fi
+    echo $state
+}
+
+#put together city names that have spaces (ex: "new york")
+function concat_city_chunks(){
+    city=""
+    STR_ARRAY=(`echo $1 | tr "\t" "\n"`)
+    i=0
+    for x in "${STR_ARRAY[@]}"
+    do
+        if [  $i -gt 1 ]
+        then
+            city="$city $x"
+        fi
+        i=$[$i +1]
+    done
+    echo $city
+}
+
+#make the wget request and parse the HTML
+function showresult(){
     val=`wget -qO- "http://www.weather.com/search/enhancedlocalsearch?where=${url_ready_place}" | \
      awk -F '</span>' '/(wx-value)*(\"temperature-fahrenheit\")/ {print $1;}' | head -1 | tail -c 3`
 
@@ -47,13 +86,9 @@ showresult(){
     full_f=`echo $section | sed 's/">//' | sed 's/It...//'`
 
     parts=`echo $full_f | sed 's/&deg...//'`
-
     description=""
-
     STR_ARRAY=(`echo $parts | tr "\t" "\n"`)
- 
     temp_far=${STR_ARRAY[0]}
-
     temp_celcius=$((($temp_far-32)*5/9))
 
     i=0
@@ -77,49 +112,21 @@ then
 fi
 
 #single result
-if [  $nbresults -eq 1 ]
+if [  $nbresults -eq 1 ] 
 then
     line_result=`sed -n "${array[0]}"p $FILE`
 
-    city=""
-
-    STR_ARRAY=(`echo $line_result | tr "\t" "\n"`)
- 
-    i=0
-    for x in "${STR_ARRAY[@]}"
-    do
-        if [  $i -gt 1 ]
-        then
-            city="$city $x"
-        fi
-        i=$[$i +1]
-    done
+    city=$(concat_city_chunks "${line_result}")
 
     state=$(echo $line_result | awk '{print $2}')
     country=$(echo $line_result | awk '{print $1}')
 
-    #not valid state.
-    if echo "${state}" | grep '[0-9]' >/dev/null; then
-      state=""
-    else
-      state="$state,"
-    fi
+    state=$(check_state_validity "${state}")
 
     place="$city $state $country"
     url_ready_place=$(echo $place | sed 's/ /+/g')
     showresult
 fi
-
-
-parse_from_multiple(){
-    if [ "$1" == "None, make a new search" ]
-    then
-        exit;
-    fi
-
-    url_ready_place=$(echo $1 | sed s/\'//g | sed 's/ /+/g')
-    showresult
-}  
 
 #multiple results
 if [  $nbresults -gt 1 ]
@@ -135,27 +142,12 @@ then
         state=$(echo $line | awk '{print $2}')
         country=$(echo $line | awk '{print $1}')
 
-        city=""
-        STR_ARRAY=(`echo $line | tr "\t" "\n"`)
-        i=0
-        for x in "${STR_ARRAY[@]}"
-        do
-            if [  $i -gt 1 ]
-            then
-                city="$city $x"
-            fi
-            i=$[$i +1]
-        done
-        city=$( echo "$city," | cut -c 2-)
+        city=$(concat_city_chunks "${line}")
+        city_formatted=$( echo "$city," | cut -c 1-)
 
-        #not valid state.
-        if echo "${state}" | grep '[0-9]' >/dev/null; then
-          state=""
-        else
-          state="$state,"
-        fi
+        state=$(check_state_validity "${state}")
 
-        place="'$city $state $country'"
+        place="'$city_formatted $state $country'"
         choices+=("$place")
     done
 
