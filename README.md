@@ -21,6 +21,7 @@ weather.sh is a small bash script that outputs weather data for a city directly 
   * ````weather montreal qc ca````
   * ````weather amsterdam nl````
   * ```weather "new york"```
+  * ```"san jose" ca us```
   * ```weather "cape town" ZA```
 
 If all goes well, response will be as follows :
