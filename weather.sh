@@ -98,7 +98,7 @@ function showresult(){
 
     url_ready_place_spaces=$(echo $url_ready_place | sed 's/+/ /g')
     d=`echo $description| awk '{print tolower($0)}'`
-    echo It\'s currently $temp_celcius°C \($temp_far°F\), $d in $url_ready_place_spaces.
+    echo It\'s currently ${temp_celcius}°C \(${temp_far}°F\), $d in $url_ready_place_spaces.
 }
 
 #no results
