@@ -13,6 +13,7 @@ fi
 #VARS
 NB=$#
 FILE=cities
+anim=0
 
 #GET INPUT
 if [ $NB -eq 1 ]
@@ -44,7 +45,7 @@ function parse_from_multiple(){
     fi
     url_ready_place=$(echo $1 | sed s/\'//g | sed 's/ /+/g')
     showresult
-}  
+}
 
 #make sure state contains no numbers
 function check_state_validity(){
@@ -58,20 +59,20 @@ function check_state_validity(){
     echo $state
 }
 
-#put together names that have spaces (ex: "new york")
+#put together city names that have spaces (ex: "new york")
 function concat_chunks(){
-    str=""
+    city=""
     STR_ARRAY=(`echo $1 | tr "\t" "\n"`)
     i=0
     for x in "${STR_ARRAY[@]}"
     do
         if [  $i -gt $2 ]
         then
-            str="$str $x"
+            city="$city $x"
         fi
         i=$[$i +1]
     done
-    echo $str
+    echo $city
 }
 
 #make the wget request and parse the HTML
@@ -86,13 +87,14 @@ function showresult(){
     full_f=`echo $section | sed 's/">//' | sed 's/It...//'`
 
     parts=`echo $full_f | sed 's/&deg...//'`
+    description=""
 
     STR_ARRAY=(`echo $parts | tr "\t" "\n"`)
-
     temp_far=${STR_ARRAY[0]}
+
     temp_celcius=$((($temp_far-32)*5/9))
 
-    description=$(concat_chunks "${parts} 0")
+    description=$(concat_chunks "${parts}" 0)
 
     url_ready_place_spaces=$(echo $url_ready_place | sed 's/+/ /g')
     d=`echo $description| awk '{print tolower($0)}'`
@@ -110,7 +112,7 @@ if [  $nbresults -eq 1 ]
 then
     line_result=`sed -n "${array[0]}"p $FILE`
 
-    city=$(concat_chunks "${line_result} 1")
+    city=$(concat_chunks "${line_result}" 1)
 
     state=$(echo $line_result | awk '{print $2}')
     country=$(echo $line_result | awk '{print $1}')
@@ -136,7 +138,7 @@ then
         state=$(echo $line | awk '{print $2}')
         country=$(echo $line | awk '{print $1}')
 
-        city=$(concat_chunks "${line} 1")
+        city=$(concat_chunks "${line}" 1)
         city_formatted=$( echo "$city," | cut -c 1-)
 
         state=$(check_state_validity "${state}")
